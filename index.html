@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Illustrations Portfolio | Timeline</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Global Header -->
+    <header class="main-header">
+        <h1>Timeline</h1>
+    </header>
+
+    <!-- Mobile year picker -->
+    <button id="mobile-year-btn" class="mobile-year-btn" aria-label="Choisir une année">Années</button>
+    <div id="mobile-year-overlay" class="mobile-year-overlay">
+        <button id="mobile-year-close" class="mobile-year-close" aria-label="Fermer">&times;</button>
+        <ul id="mobile-year-list" class="mobile-year-list"></ul>
+    </div>
+
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <button id="reset-filter" class="hidden">Tout voir</button>
+            <nav class="timeline-nav">
+                <div class="timeline-line"></div>
+                <ul id="timeline-list">
+                    <!-- Generated dynamically by app.js -->
+                </ul>
+            </nav>
+
+            <footer class="sidebar-footer">
+                <a href="mailto:contact@example.com" class="contact-link">Contact</a>
+            </footer>
+        </aside>
+
+        <!-- Main Content (Unified Grid) -->
+        <main class="content-area" id="main-content">
+            <!-- Images and years will be injected here directly into the grid -->
+            
+            <div id="infinite-scroll-trigger"></div>
+            <div id="loading-indicator" class="hidden" aria-live="polite">Chargement...</div>
+        </main>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
