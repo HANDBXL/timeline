@@ -20,7 +20,7 @@ document.addEventListener('DOMContentLoaded', () => {
             "gifs/Illustration_sans_titre-12.mp4", "gifs/Illustration_sans_titre-7.mp4", "gifs/Illustration_sans_titre-9.mp4",
             "gifs/LAHAINE.mp4", "gifs/PILOT_tee_12.mp4", "gifs/Sans-titre.mp4",
             "gifs/Sans-titre000.mp4", "gifs/Sans-titre00000.mp4", "gifs/blockligh.mp4",
-            "gifs/blockligh3.mp4", "gifs/blocklight11.mp4", "gifs/✏️🎹🎤Quand le piano virtuose rencontre le flow belge.Un moment suspendu entre @chilly_gonzales .mp4"
+            "gifs/blockligh3.mp4", "gifs/blocklight11.mp4"
         ],
         "2024": [
             "images/01-02j.webp", "images/02.webp", "images/03k.webp",
