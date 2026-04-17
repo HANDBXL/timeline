@@ -1,8 +1,46 @@
 document.addEventListener('DOMContentLoaded', () => {
+    // --- I18N ---
+    const translations = {
+        fr: {
+            showAll: "Tout voir",
+            years: "Années",
+            contact: "Contact",
+            illustration: "Illustration"
+        },
+        en: {
+            showAll: "Show all",
+            years: "Years",
+            contact: "Contact",
+            illustration: "Illustration"
+        },
+        es: {
+            showAll: "Ver todo",
+            years: "Años",
+            contact: "Contacto",
+            illustration: "Ilustración"
+        },
+        de: {
+            showAll: "Alles sehen",
+            years: "Jahre",
+            contact: "Kontakt",
+            illustration: "Illustration"
+        }
+    };
+    const browserLang = (navigator.language || 'fr').toLowerCase().slice(0, 2);
+    const t = translations[browserLang] || translations.en;
+
     const scrollTrigger = document.getElementById('infinite-scroll-trigger');
     const mainContent = document.getElementById('main-content');
     const loadingIndicator = document.getElementById('loading-indicator');
     const resetBtn = document.getElementById('reset-filter');
+
+    // Apply translations to static elements
+    if (resetBtn) resetBtn.textContent = t.showAll;
+    const mobileBtnEl = document.getElementById('mobile-year-btn');
+    if (mobileBtnEl) mobileBtnEl.textContent = t.years;
+    const mobileContactEl = document.getElementById('mobile-contact-link');
+    if (mobileContactEl) mobileContactEl.textContent = t.contact;
+    document.querySelectorAll('.contact-link').forEach(el => el.textContent = t.contact);
 
     // CONFIGURATION DU PORTFOLIO
     const portfolioData = {
@@ -350,7 +388,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (videoExts.includes(ext)) {
                 card.innerHTML = `<video src="${src}" autoplay muted loop playsinline preload="metadata" oncontextmenu="return false"></video>`;
             } else {
-                card.innerHTML = `<img src="${src}" alt="Illustration ${yearToLoad}" loading="lazy" draggable="false" oncontextmenu="return false">`;
+                card.innerHTML = `<img src="${src}" alt="${t.illustration} ${yearToLoad}" loading="lazy" draggable="false" oncontextmenu="return false">`;
             }
 
             mainContent.insertBefore(card, scrollTrigger);
@@ -416,9 +454,9 @@ document.addEventListener('DOMContentLoaded', () => {
         mobileList.appendChild(li);
     });
 
-    // Add "Tout voir" at the end
+    // Add "Show all" at the end
     const allLi = document.createElement('li');
-    allLi.innerHTML = `<a href="#" class="mobile-year-link mobile-year-all" data-year="all">Tout voir</a>`;
+    allLi.innerHTML = `<a href="#" class="mobile-year-link mobile-year-all" data-year="all">${t.showAll}</a>`;
     mobileList.appendChild(allLi);
 
     function updateMobileActive(year) {
