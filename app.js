@@ -342,9 +342,9 @@ document.addEventListener('DOMContentLoaded', () => {
             const src = `images/${yearToLoad}/${parts.map(p => encodeURIComponent(p)).join('/')}`;
 
             if (videoExts.includes(ext)) {
-                card.innerHTML = `<video src="${src}" autoplay muted loop playsinline preload="metadata"></video>`;
+                card.innerHTML = `<video src="${src}" autoplay muted loop playsinline preload="metadata" oncontextmenu="return false"></video>`;
             } else {
-                card.innerHTML = `<img src="${src}" alt="Illustration ${yearToLoad}" loading="lazy">`;
+                card.innerHTML = `<img src="${src}" alt="Illustration ${yearToLoad}" loading="lazy" draggable="false" oncontextmenu="return false">`;
             }
 
             mainContent.insertBefore(card, scrollTrigger);
