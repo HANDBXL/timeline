@@ -351,6 +351,22 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }, { threshold: 0.05 });
 
+    // --- VIDEO PLAY/PAUSE (Safari + Chrome fix) ---
+    const videoObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            const video = entry.target.querySelector('video');
+            if (!video) return;
+            if (entry.isIntersecting) {
+                if (video.networkState === HTMLMediaElement.NETWORK_EMPTY) {
+                    video.load();
+                }
+                video.play().catch(() => {});
+            } else {
+                if (!video.paused) video.pause();
+            }
+        });
+    }, { threshold: 0.1, rootMargin: '100px 0px' });
+
     // --- LOAD CONTENT ---
     const loadMoreContent = () => {
         if (loadingIndicator.classList.contains('end-reached')) return;
@@ -385,14 +401,38 @@ document.addEventListener('DOMContentLoaded', () => {
             const parts = filename.split('/');
             const src = `images/${yearToLoad}/${parts.map(p => encodeURIComponent(p)).join('/')}`;
 
-            if (videoExts.includes(ext)) {
-                card.innerHTML = `<video src="${src}" autoplay muted loop playsinline preload="metadata" oncontextmenu="return false"></video>`;
+            const isVideo = videoExts.includes(ext);
+
+            if (isVideo) {
+                const video = document.createElement('video');
+                video.muted = true; // must be set as property for Safari
+                video.loop = true;
+                video.setAttribute('autoplay', '');
+                video.setAttribute('playsinline', '');
+                video.setAttribute('webkit-playsinline', ''); // legacy iOS Safari
+                video.setAttribute('preload', 'none');
+                video.addEventListener('contextmenu', e => e.preventDefault());
+                video.addEventListener('error', () => { card.style.display = 'none'; });
+
+                const source = document.createElement('source');
+                source.src = src;
+                source.type = 'video/mp4';
+                video.appendChild(source);
+                card.appendChild(video);
             } else {
-                card.innerHTML = `<img src="${src}" alt="${t.illustration} ${yearToLoad}" loading="lazy" draggable="false" oncontextmenu="return false">`;
+                const img = document.createElement('img');
+                img.src = src;
+                img.alt = `${t.illustration} ${yearToLoad}`;
+                img.loading = 'lazy';
+                img.draggable = false;
+                img.addEventListener('contextmenu', e => e.preventDefault());
+                img.addEventListener('error', () => { card.style.display = 'none'; });
+                card.appendChild(img);
             }
 
             mainContent.insertBefore(card, scrollTrigger);
             revealObserver.observe(card);
+            if (isVideo) videoObserver.observe(card);
         });
 
         // Nav link

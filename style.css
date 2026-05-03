@@ -217,6 +217,10 @@ body {
     pointer-events: none;
 }
 
+.artwork-card video {
+    min-height: 1px; /* prevent zero-height flash before metadata loads */
+}
+
 .artwork-card:hover img,
 .artwork-card:hover video {
     transform: scale(1.03);
