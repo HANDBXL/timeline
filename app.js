@@ -33,6 +33,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const mainContent = document.getElementById('main-content');
     const loadingIndicator = document.getElementById('loading-indicator');
     const resetBtn = document.getElementById('reset-filter');
+    const sidebar = document.getElementById('sidebar');
 
     // Apply translations to static elements
     if (resetBtn) resetBtn.textContent = t.showAll;
@@ -323,24 +324,9 @@ document.addEventListener('DOMContentLoaded', () => {
     let yearIndex = 0;
     let isFiltered = false;
 
-    // --- SCROLL HIGHLIGHT ---
-    const sectionObserver = new IntersectionObserver((entries) => {
-        if (isFiltered) return;
-        entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                const year = entry.target.getAttribute('data-year');
-                document.querySelectorAll('.timeline-link').forEach(link => {
-                    link.classList.remove('active');
-                    if (link.getAttribute('data-year') === year) {
-                        link.classList.add('active');
-                    }
-                });
-            }
-        });
-    }, {
-        threshold: 0,
-        rootMargin: "-10% 0px -80% 0px"
-    });
+    // Scroll highlight removed — sidebar is a pure filter, active state
+    // only reflects an intentional user selection, not scroll position.
+    const sectionObserver = { observe: () => {} };
 
     // --- REVEAL ANIMATIONS ---
     const revealObserver = new IntersectionObserver((entries) => {
@@ -376,6 +362,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!yearToLoad) {
             loadingIndicator.textContent = "";
             loadingIndicator.classList.add('end-reached');
+            if (scrollTrigger) scrollTrigger.remove(); // stop further observations
             return;
         }
 
@@ -446,16 +433,42 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    // Load all years at once for a dense, continuous masonry
-    while (yearIndex < availableYears.length) {
-        loadMoreContent();
+    // Load first 2 years immediately, then lazy-load the rest on scroll
+    const YEARS_PER_BATCH = 2;
+
+    function loadBatch() {
+        if (isFiltered) return;
+        for (let i = 0; i < YEARS_PER_BATCH; i++) {
+            loadMoreContent();
+        }
     }
+
+    // Initial batch
+    loadBatch();
+
+    // Infinite scroll: load next batch when trigger enters viewport
+    const scrollObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                loadBatch();
+            }
+        });
+    }, { rootMargin: '400px 0px' });
+
+    if (scrollTrigger) scrollObserver.observe(scrollTrigger);
 
     // --- FILTERING ---
     function applyFilter(year) {
         if (!portfolioData[year]) return;
+
+        // Ensure the requested year is loaded before filtering
+        while (yearIndex < availableYears.length && !document.querySelector(`[data-year="${year}"]`)) {
+            loadMoreContent();
+        }
+
         isFiltered = true;
         resetBtn.classList.remove('hidden');
+        if (sidebar) sidebar.classList.add('is-filtered');
 
         document.querySelectorAll('.artwork-card').forEach(card => {
             if (card.getAttribute('data-year') == year) {
@@ -476,8 +489,12 @@ document.addEventListener('DOMContentLoaded', () => {
     function resetFilters() {
         isFiltered = false;
         resetBtn.classList.add('hidden');
+        if (sidebar) sidebar.classList.remove('is-filtered');
         document.querySelectorAll('.artwork-card').forEach(card => {
             card.classList.remove('filtered-out');
+        });
+        document.querySelectorAll('.timeline-link').forEach(link => {
+            link.classList.remove('active');
         });
     }
 
@@ -522,6 +539,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const year = link.getAttribute('data-year');
 
         if (year === 'all') {
+            // Load all remaining years before showing everything
+            while (yearIndex < availableYears.length) {
+                loadMoreContent();
+            }
             resetFilters();
             updateMobileActive(null);
         } else {
@@ -546,52 +567,18 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // --- DARK MODE (sunset/sunrise) ---
-    function getSunTimes(lat, lng, date) {
-        // Solar calculations (simplified Meeus algorithm)
-        const rad = Math.PI / 180;
-        const dayOfYear = Math.floor((date - new Date(date.getFullYear(), 0, 0)) / 86400000);
-        const decl = -23.45 * Math.cos(rad * (360 / 365) * (dayOfYear + 10));
-        const ha = Math.acos(
-            (Math.cos(rad * 90.833) - Math.sin(rad * lat) * Math.sin(rad * decl)) /
-            (Math.cos(rad * lat) * Math.cos(rad * decl))
-        ) / rad;
-        const noon = 720 - 4 * lng - date.getTimezoneOffset();
-        const sunrise = noon - ha * 4;
-        const sunset = noon + ha * 4;
-        return {
-            sunrise: Math.floor(sunrise / 60) + (sunrise % 60) / 60,
-            sunset: Math.floor(sunset / 60) + (sunset % 60) / 60
-        };
-    }
-
-    function updateDarkMode(lat, lng) {
+    // --- DARK MODE (time-based, no geolocation needed) ---
+    function updateDarkMode() {
+        // Use the user's local clock — no location permission required
         const now = new Date();
         const hours = now.getHours() + now.getMinutes() / 60;
-        const sun = getSunTimes(lat, lng, now);
-        const isDark = hours < sun.sunrise || hours > sun.sunset;
+        // Dark between 20:30 and 07:30 local time
+        const isDark = hours >= 20.5 || hours < 7.5;
         document.body.classList.toggle('dark-mode', isDark);
     }
 
-    // Default: Paris (fallback)
-    let userLat = 48.86;
-    let userLng = 2.35;
-
-    // Try geolocation, then start
-    if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(
-            (pos) => {
-                userLat = pos.coords.latitude;
-                userLng = pos.coords.longitude;
-                updateDarkMode(userLat, userLng);
-            },
-            () => updateDarkMode(userLat, userLng),
-            { timeout: 3000 }
-        );
-    } else {
-        updateDarkMode(userLat, userLng);
-    }
+    updateDarkMode();
 
     // Re-check every 5 minutes
-    setInterval(() => updateDarkMode(userLat, userLng), 300000);
+    setInterval(updateDarkMode, 300000);
 });

@@ -78,6 +78,18 @@ body {
     padding: 80px 0 20px 0;
 }
 
+.sidebar-filter-label {
+    font-size: 7px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--link-inactive);
+    margin-bottom: 10px;
+    opacity: 0.5;
+    writing-mode: horizontal-tb;
+    transition: color 1.5s ease;
+}
+
 #reset-filter {
     flex-shrink: 0;
     width: var(--sidebar-width);
@@ -91,7 +103,7 @@ body {
     font-size: 7px;
     letter-spacing: 0.5px;
     cursor: pointer;
-    margin-bottom: 15px;
+    margin-bottom: 12px;
     text-align: center;
     transition: opacity 0.3s, background-color 1.5s ease, color 1.5s ease;
 }
@@ -104,14 +116,20 @@ body {
     opacity: 0.8;
 }
 
-/* Timeline nav — scrollable, takes remaining space */
+/* Timeline nav — scrollable, takes remaining space, centered vertically */
 .timeline-nav {
     -webkit-flex: 1 1 0%;
     flex: 1 1 0%;
     overflow-y: auto;
     overflow-x: hidden;
     -webkit-overflow-scrolling: touch;
-    scrollbar-width: none; /* Firefox */
+    scrollbar-width: none;
+    display: -webkit-flex;
+    display: flex;
+    -webkit-flex-direction: column;
+    flex-direction: column;
+    -webkit-justify-content: center;
+    justify-content: center;
 }
 
 .timeline-nav::-webkit-scrollbar {
@@ -130,7 +148,7 @@ body {
 
 #timeline-list li {
     text-align: center;
-    padding: 6px 0;
+    padding: 5px 0;
 }
 
 .timeline-link {
@@ -138,13 +156,26 @@ body {
     font-weight: 700;
     color: var(--link-inactive);
     text-decoration: none;
-    transition: color 0.3s;
+    transition: color 0.2s, opacity 0.2s;
     cursor: pointer;
     display: block;
+    line-height: 1.2;
 }
 
+.timeline-link:hover {
+    color: var(--text-color);
+    opacity: 0.7;
+}
+
+/* Active only when a filter is applied */
 .timeline-link.active {
     color: var(--text-color);
+    opacity: 1;
+}
+
+/* When a filter is active, dim non-active links */
+.sidebar.is-filtered .timeline-link:not(.active) {
+    opacity: 0.3;
 }
 
 /* Footer Sidebar — always at bottom */
