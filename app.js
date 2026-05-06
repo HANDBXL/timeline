@@ -422,16 +422,17 @@ document.addEventListener('DOMContentLoaded', () => {
             if (isVideo) videoObserver.observe(card);
         });
 
-        // Nav link
-        if (!document.querySelector(`.timeline-link[data-year="${yearToLoad}"]`)) {
-            const timelineList = document.getElementById('timeline-list');
-            if (timelineList) {
-                const li = document.createElement('li');
-                li.innerHTML = `<a href="#year-${yearToLoad}" class="timeline-link" data-year="${yearToLoad}">${yearToLoad}</a>`;
-                timelineList.appendChild(li);
-            }
-        }
     };
+
+    // Populate full year list in sidebar immediately — all years visible upfront
+    const timelineList = document.getElementById('timeline-list');
+    if (timelineList) {
+        availableYears.forEach(year => {
+            const li = document.createElement('li');
+            li.innerHTML = `<a href="#" class="timeline-link" data-year="${year}">${year}</a>`;
+            timelineList.appendChild(li);
+        });
+    }
 
     // Load first 2 years immediately, then lazy-load the rest on scroll
     const YEARS_PER_BATCH = 2;
