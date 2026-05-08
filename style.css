@@ -173,9 +173,14 @@ body {
     opacity: 1;
 }
 
-/* When a filter is active, dim non-active links */
+/* When a filter is active, non-active years stay lisible with a medium gray */
 .sidebar.is-filtered .timeline-link:not(.active) {
-    opacity: 0.3;
+    color: #bbb;
+    opacity: 1;
+}
+
+body.dark-mode .sidebar.is-filtered .timeline-link:not(.active) {
+    color: #555;
 }
 
 /* Footer Sidebar — always at bottom */
