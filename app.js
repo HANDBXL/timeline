@@ -354,53 +354,42 @@ document.addEventListener('DOMContentLoaded', () => {
     }, { threshold: 0.1, rootMargin: '100px 0px' });
 
     // --- LOAD CONTENT ---
-    const loadMoreContent = () => {
-        if (loadingIndicator.classList.contains('end-reached')) return;
+    const loadedYears = new Set();
 
-        const yearToLoad = availableYears[yearIndex];
-
-        if (!yearToLoad) {
-            loadingIndicator.textContent = "";
-            loadingIndicator.classList.add('end-reached');
-            if (scrollTrigger) scrollTrigger.remove(); // stop further observations
-            return;
-        }
-
-        yearIndex++;
+    // Load any specific year directly into the DOM (order-independent)
+    const loadYear = (year) => {
+        if (!year || !portfolioData[year] || loadedYears.has(year)) return;
+        loadedYears.add(year);
 
         // Invisible year anchor
         const marker = document.createElement('div');
         marker.className = 'year-marker';
-        marker.id = `year-${yearToLoad}`;
-        marker.setAttribute('data-year', yearToLoad);
+        marker.id = `year-${year}`;
+        marker.setAttribute('data-year', year);
         mainContent.insertBefore(marker, scrollTrigger);
-        sectionObserver.observe(marker);
 
         // Images & Videos
         const videoExts = ['.mp4', '.webm', '.mov', '.m4v'];
-        const files = portfolioData[yearToLoad];
-        files.forEach(filename => {
+        portfolioData[year].forEach(filename => {
             const card = document.createElement('div');
             card.className = 'artwork-card';
-            card.setAttribute('data-year', yearToLoad);
+            card.setAttribute('data-year', year);
             card.setAttribute('data-reveal', '');
             const ext = filename.substring(filename.lastIndexOf('.')).toLowerCase();
             const parts = filename.split('/');
-            const src = `images/${yearToLoad}/${parts.map(p => encodeURIComponent(p)).join('/')}`;
-
+            const src = `images/${year}/${parts.map(p => encodeURIComponent(p)).join('/')}`;
             const isVideo = videoExts.includes(ext);
 
             if (isVideo) {
                 const video = document.createElement('video');
-                video.muted = true; // must be set as property for Safari
+                video.muted = true;
                 video.loop = true;
                 video.setAttribute('autoplay', '');
                 video.setAttribute('playsinline', '');
-                video.setAttribute('webkit-playsinline', ''); // legacy iOS Safari
+                video.setAttribute('webkit-playsinline', '');
                 video.setAttribute('preload', 'none');
                 video.addEventListener('contextmenu', e => e.preventDefault());
                 video.addEventListener('error', () => { card.style.display = 'none'; });
-
                 const source = document.createElement('source');
                 source.src = src;
                 source.type = 'video/mp4';
@@ -409,7 +398,7 @@ document.addEventListener('DOMContentLoaded', () => {
             } else {
                 const img = document.createElement('img');
                 img.src = src;
-                img.alt = `${t.illustration} ${yearToLoad}`;
+                img.alt = `${t.illustration} ${year}`;
                 img.loading = 'lazy';
                 img.draggable = false;
                 img.addEventListener('contextmenu', e => e.preventDefault());
@@ -421,7 +410,25 @@ document.addEventListener('DOMContentLoaded', () => {
             revealObserver.observe(card);
             if (isVideo) videoObserver.observe(card);
         });
+    };
 
+    // Sequential loader for scroll-based batching (skips already-loaded years)
+    const loadMoreContent = () => {
+        if (loadingIndicator.classList.contains('end-reached')) return;
+
+        // Advance past any years already loaded out-of-order (e.g. via filter click)
+        while (yearIndex < availableYears.length && loadedYears.has(availableYears[yearIndex])) {
+            yearIndex++;
+        }
+
+        if (yearIndex >= availableYears.length) {
+            loadingIndicator.classList.add('end-reached');
+            if (scrollTrigger) scrollTrigger.remove();
+            return;
+        }
+
+        loadYear(availableYears[yearIndex]);
+        yearIndex++;
     };
 
     // Populate full year list in sidebar immediately — all years visible upfront
@@ -462,10 +469,8 @@ document.addEventListener('DOMContentLoaded', () => {
     function applyFilter(year) {
         if (!portfolioData[year]) return;
 
-        // Ensure the requested year is loaded before filtering
-        while (yearIndex < availableYears.length && !document.querySelector(`[data-year="${year}"]`)) {
-            loadMoreContent();
-        }
+        // Load the year directly if not yet in DOM — no sequential wait
+        loadYear(year);
 
         isFiltered = true;
         resetBtn.classList.remove('hidden');
@@ -540,10 +545,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const year = link.getAttribute('data-year');
 
         if (year === 'all') {
-            // Load all remaining years before showing everything
-            while (yearIndex < availableYears.length) {
-                loadMoreContent();
-            }
             resetFilters();
             updateMobileActive(null);
         } else {
